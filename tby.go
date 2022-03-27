@@ -9,10 +9,15 @@ import (
 	"time"
 
 	"github.com/cheynewallace/tabby"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
+
+func init() {
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+}
 
 var (
 	configPath = getTbyConfigPath()
