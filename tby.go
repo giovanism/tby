@@ -63,6 +63,15 @@ func (t SSHTunnel) runPkill() (*exec.Cmd, error) {
 	return cmd, nil
 }
 
+func (t SSHTunnel) Status() string {
+
+	if t.IsUp() {
+		return "up"
+	}
+
+	return ""
+}
+
 func (t SSHTunnel) IsUp() bool {
 
 	_, err := t.runPgrep()
@@ -174,6 +183,12 @@ An awesome terminal program that will accelerate your way of using tsh teleport 
 			tbyConfig := getTbyConfig()
 			tun := tbyConfig.Tunnels[id]
 
+			if tun.IsUp() {
+				// Intended idempotency
+				log.Warn().Msgf("Tunnel %d on port %d is already up", id, tun.LocalPort)
+				return
+			}
+
 			log.Info().Msgf("Connecting to tunnel %d on port %d", id, tun.LocalPort)
 			err = tun.Up()
 			if err != nil {
@@ -233,7 +248,7 @@ func listCmd() *cobra.Command {
 			t := tabby.New()
 			t.AddHeader("Id", "user@host", "Port", "Status")
 			for i, tun := range tbyConfig.Tunnels {
-				t.AddLine(i, fmt.Sprintf("%s@%s", tun.User, tun.NodeName), fmt.Sprintf("%d:%d", tun.LocalPort, tun.RemotePort), tun.IsUp())
+				t.AddLine(i, fmt.Sprintf("%s@%s", tun.User, tun.NodeName), fmt.Sprintf("%d:%d", tun.LocalPort, tun.RemotePort), tun.Status())
 			}
 			t.Print()
 		},
