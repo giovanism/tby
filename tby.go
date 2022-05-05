@@ -6,9 +6,9 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"text/tabwriter"
 	"time"
 
-	"github.com/cheynewallace/tabby"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -245,12 +245,12 @@ func listCmd() *cobra.Command {
 
 			tbyConfig := getTbyConfig()
 
-			t := tabby.New()
-			t.AddHeader("Id", "user@host", "Port", "Status")
+			tw := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+			fmt.Fprintln(tw, "Id\tuser@host\tPort\tStatus")
 			for i, tun := range tbyConfig.Tunnels {
-				t.AddLine(i, fmt.Sprintf("%s@%s", tun.User, tun.NodeName), fmt.Sprintf("%d:%d", tun.LocalPort, tun.RemotePort), tun.Status())
+				fmt.Fprintf(tw, "%d\t%s@%s\t%d:%d\t%s\n", i, tun.User, tun.NodeName, tun.LocalPort, tun.RemotePort, tun.Status())
 			}
-			t.Print()
+			tw.Flush()
 		},
 	}
 }
