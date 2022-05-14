@@ -30,12 +30,13 @@ type TbyConfig struct {
 	Tunnels []Tunnel `yaml:"tunnels"`
 }
 
+type tunnelType struct {
+	Type string `yaml:"type"`
+}
+
 func (t *TbyConfig) UnmarshalYAML(val *yaml.Node) error {
 	type tmpTbyConfig struct {
 		Tunnels []yaml.Node `yaml:"tunnels"`
-	}
-	type tmpTunnel struct {
-		Type string `yaml:"type"`
 	}
 	var tmpConfig tmpTbyConfig
 
@@ -49,7 +50,7 @@ func (t *TbyConfig) UnmarshalYAML(val *yaml.Node) error {
 		if tunNode.Kind != yaml.MappingNode {
 			return ErrInvalidConfig
 		}
-		var tmpTun tmpTunnel
+		var tmpTun tunnelType
 
 		err = tunNode.Decode(&tmpTun)
 		if err != nil {
@@ -84,7 +85,7 @@ type Tunnel interface {
 }
 
 type SSHTunnel struct {
-	Type       string `yaml:"type"`
+	tunnelType `yaml:",inline"`
 	User       string `yaml:"user"`
 	NodeName   string `yaml:"nodeName"`
 	RemotePort int    `yaml:"remotePort"`
