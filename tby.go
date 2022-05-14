@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -20,11 +21,66 @@ func init() {
 }
 
 var (
+	ErrInvalidConfig = errors.New("Invalid config")
+
 	configPath = getTbyConfigPath()
 )
 
 type TbyConfig struct {
-	Tunnels []SSHTunnel `yaml:"tunnels"`
+	Tunnels []Tunnel `yaml:"tunnels"`
+}
+
+func (t *TbyConfig) UnmarshalYAML(val *yaml.Node) error {
+	type tmpTbyConfig struct {
+		Tunnels []yaml.Node `yaml:"tunnels"`
+	}
+	type tmpTunnel struct {
+		Type string `yaml:"type"`
+	}
+	var tmpConfig tmpTbyConfig
+
+	err := val.Decode(&tmpConfig)
+	if err != nil {
+		return err
+	}
+
+	tunnels := make([]Tunnel, 0, len(tmpConfig.Tunnels))
+	for _, tunNode := range tmpConfig.Tunnels {
+		if tunNode.Kind != yaml.MappingNode {
+			return ErrInvalidConfig
+		}
+		var tmpTun tmpTunnel
+
+		err = tunNode.Decode(&tmpTun)
+		if err != nil {
+			return err
+		}
+
+		if tmpTun.Type == "ssh" {
+			var sshTun SSHTunnel
+
+			err = tunNode.Decode(&sshTun)
+			if err != nil {
+				return err
+			}
+
+			tunnels = append(tunnels, sshTun)
+		}
+	}
+
+	t.Tunnels = tunnels
+
+	return nil
+}
+
+type Tunnel interface {
+	Name() string
+	Status() string
+	PortMapping() string
+	Up() error
+	Down() error
+	IsUp() bool
+	GetLocalPort() int
 }
 
 type SSHTunnel struct {
@@ -61,6 +117,16 @@ func (t SSHTunnel) runPkill() (*exec.Cmd, error) {
 	}
 
 	return cmd, nil
+}
+
+func (t SSHTunnel) Name() string {
+
+	return fmt.Sprintf("%s@%s", t.User, t.NodeName)
+}
+
+func (t SSHTunnel) PortMapping() string {
+
+	return fmt.Sprintf("%d:%d", t.LocalPort, t.RemotePort)
 }
 
 func (t SSHTunnel) Status() string {
@@ -113,6 +179,11 @@ func (t SSHTunnel) Down() error {
 	}
 
 	return nil
+}
+
+func (t SSHTunnel) GetLocalPort() int {
+
+	return t.LocalPort
 }
 
 func getTbyDir() string {
@@ -185,14 +256,14 @@ An awesome terminal program that will accelerate your way of using tsh teleport 
 
 			if tun.IsUp() {
 				// Intended idempotency
-				log.Warn().Msgf("Tunnel %d on port %d is already up", id, tun.LocalPort)
+				log.Warn().Msgf("Tunnel %d on port %d is already up", id, tun.GetLocalPort())
 				return
 			}
 
-			log.Info().Msgf("Connecting to tunnel %d on port %d", id, tun.LocalPort)
+			log.Info().Msgf("Connecting to tunnel %d on port %d", id, tun.GetLocalPort())
 			err = tun.Up()
 			if err != nil {
-				log.Fatal().Err(err).Msgf("Failed to connect to tunnel %d on port %d", id, tun.LocalPort)
+				log.Fatal().Err(err).Msgf("Failed to connect to tunnel %d on port %d", id, tun.GetLocalPort())
 			}
 		},
 	}
@@ -225,7 +296,7 @@ func downCmd() *cobra.Command {
 			tbyConfig := getTbyConfig()
 			tun := tbyConfig.Tunnels[id]
 
-			log.Info().Msgf("Disconnecting tunnel %d on port %d", id, tun.LocalPort)
+			log.Info().Msgf("Disconnecting tunnel %d on port %d", id, tun.GetLocalPort())
 			err = tun.Down()
 			if err != nil {
 				log.Fatal().Err(err).Msgf("Failed to deactivate tunnel %d", id)
@@ -246,9 +317,9 @@ func listCmd() *cobra.Command {
 			tbyConfig := getTbyConfig()
 
 			tw := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-			fmt.Fprintln(tw, "Id\tuser@host\tPort\tStatus")
+			fmt.Fprintln(tw, "Id\tName\tPort\tStatus")
 			for i, tun := range tbyConfig.Tunnels {
-				fmt.Fprintf(tw, "%d\t%s@%s\t%d:%d\t%s\n", i, tun.User, tun.NodeName, tun.LocalPort, tun.RemotePort, tun.Status())
+				fmt.Fprintf(tw, "%d\t%s\t%s\t%s\n", i, tun.Name(), tun.PortMapping(), tun.Status())
 			}
 			tw.Flush()
 		},
