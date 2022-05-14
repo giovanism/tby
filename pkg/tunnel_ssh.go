@@ -9,7 +9,7 @@ import (
 )
 
 type SSHTunnel struct {
-	tunnelType `yaml:",inline"`
+	TunnelType `yaml:",inline"`
 	User       string `yaml:"user"`
 	NodeName   string `yaml:"nodeName"`
 	RemotePort int    `yaml:"remotePort"`
@@ -110,4 +110,3 @@ func (t SSHTunnel) GetLocalPort() int {
 
 	return t.LocalPort
 }
-

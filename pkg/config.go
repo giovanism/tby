@@ -10,7 +10,8 @@ import (
 )
 
 var (
-	ErrInvalidConfig = errors.New("Invalid config")
+	ErrInvalidConfig     = errors.New("Error invalid config")
+	ErrInvalidTunnelType = errors.New("Error invalid tunnel type")
 )
 
 type Config struct {
@@ -33,14 +34,15 @@ func (t *Config) UnmarshalYAML(val *yaml.Node) error {
 		if tunNode.Kind != yaml.MappingNode {
 			return ErrInvalidConfig
 		}
-		var tmpTun tunnelType
+		var tmpTun TunnelType
 
 		err = tunNode.Decode(&tmpTun)
 		if err != nil {
 			return err
 		}
 
-		if tmpTun.Type == "ssh" {
+		switch tmpTun.Type {
+		case "ssh":
 			var sshTun SSHTunnel
 
 			err = tunNode.Decode(&sshTun)
@@ -49,6 +51,8 @@ func (t *Config) UnmarshalYAML(val *yaml.Node) error {
 			}
 
 			tunnels = append(tunnels, sshTun)
+		default:
+			return ErrInvalidTunnelType
 		}
 	}
 
@@ -96,4 +100,3 @@ func GetConfig() *Config {
 	log.Debug().Msgf("Loaded: %s", configPath)
 	return tbyConfig
 }
-

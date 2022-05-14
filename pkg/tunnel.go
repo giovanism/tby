@@ -10,7 +10,6 @@ type Tunnel interface {
 	GetLocalPort() int
 }
 
-type tunnelType struct {
+type TunnelType struct {
 	Type string `yaml:"type"`
 }
-
