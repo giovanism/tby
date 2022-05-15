@@ -1,4 +1,4 @@
-package main
+package pkg
 
 import (
 	"fmt"
@@ -6,18 +6,11 @@ import (
 	"strconv"
 	"text/tabwriter"
 
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
-
-	tby "github.com/giovanism/tby/pkg"
 )
 
-func init() {
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-}
-
-func main() {
+func CommandExecute() {
 	rootCmd().Execute()
 }
 
@@ -43,7 +36,7 @@ An awesome terminal program that will accelerate your way of using tsh teleport 
 				log.Fatal().Err(err).Msg("Failed to parse ID")
 			}
 
-			config := tby.GetConfig()
+			config := GetConfig()
 			tun := config.Tunnels[id]
 
 			if tun.IsUp() {
@@ -85,7 +78,7 @@ func downCmd() *cobra.Command {
 				log.Fatal().Err(err).Msg("Failed to parse ID")
 			}
 
-			config := tby.GetConfig()
+			config := GetConfig()
 			tun := config.Tunnels[id]
 
 			log.Info().Msgf("Disconnecting tunnel %d on port %d", id, tun.GetLocalPort())
@@ -106,7 +99,7 @@ func listCmd() *cobra.Command {
 		Long:    `List tunnels configured inside tby config file in a table.`,
 		Run: func(cmd *cobra.Command, args []string) {
 
-			config := tby.GetConfig()
+			config := GetConfig()
 
 			tw := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 			fmt.Fprintln(tw, "Id\tName\tPort\tStatus")
