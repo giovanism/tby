@@ -3,6 +3,7 @@ package pkg
 import (
 	"fmt"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -16,11 +17,18 @@ type SSHTunnel struct {
 	LocalPort  int    `yaml:"localPort"`
 }
 
+func (t SSHTunnel) getExecArgs() []string {
+
+	return []string{"tsh", "ssh", "-NL", fmt.Sprintf("%d:localhost:%d", t.LocalPort, t.RemotePort), fmt.Sprintf("%s@%s", t.User, t.NodeName)}
+}
+
 func (t SSHTunnel) runPgrep() (*exec.Cmd, error) {
 
-	log.Debug().Msgf("Running: pgrep -f %s", fmt.Sprintf("%d:localhost:%d", t.LocalPort, t.RemotePort))
+	execStr := strings.Join(t.getExecArgs(), " ")
 
-	cmd := exec.Command("pgrep", "-f", fmt.Sprintf("%d:localhost:%d", t.LocalPort, t.RemotePort))
+	log.Debug().Msgf("Running: pgrep -f '%s'", execStr)
+
+	cmd := exec.Command("pgrep", "-f", execStr)
 
 	err := cmd.Run()
 	if err != nil {
@@ -32,9 +40,11 @@ func (t SSHTunnel) runPgrep() (*exec.Cmd, error) {
 
 func (t SSHTunnel) runPkill() (*exec.Cmd, error) {
 
-	log.Debug().Msgf("Running: pkill -f %s", fmt.Sprintf("%d:localhost:%d", t.LocalPort, t.RemotePort))
+	execStr := strings.Join(t.getExecArgs(), " ")
 
-	cmd := exec.Command("pkill", "-f", fmt.Sprintf("%d:localhost:%d", t.LocalPort, t.RemotePort))
+	log.Debug().Msgf("Running: pkill -f '%s'", execStr)
+
+	cmd := exec.Command("pkill", "-f", execStr)
 
 	err := cmd.Run()
 	if err != nil {
@@ -76,9 +86,10 @@ func (t SSHTunnel) IsUp() bool {
 
 func (t SSHTunnel) Up() error {
 
-	log.Debug().Msgf("Starting: tsh ssh -NL %s %s", fmt.Sprintf("%d:localhost:%d", t.LocalPort, t.RemotePort), fmt.Sprintf("%s@%s", t.User, t.NodeName))
+	execArgs := t.getExecArgs()
+	log.Debug().Msgf("Starting: %s", strings.Join(execArgs, " "))
 
-	cmd := exec.Command("tsh", "ssh", "-NL", fmt.Sprintf("%d:localhost:%d", t.LocalPort, t.RemotePort), fmt.Sprintf("%s@%s", t.User, t.NodeName))
+	cmd := exec.Command(execArgs[0], execArgs[1:]...)
 
 	if err := cmd.Start(); err != nil {
 		return err
