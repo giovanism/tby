@@ -51,6 +51,15 @@ func (t *Config) UnmarshalYAML(val *yaml.Node) error {
 			}
 
 			tunnels = append(tunnels, sshTun)
+		case "k8s":
+			var k8sTun K8sPortForwardTunnel
+
+			err = tunNode.Decode(&k8sTun)
+			if err != nil {
+				return err
+			}
+
+			tunnels = append(tunnels, k8sTun)
 		default:
 			return ErrInvalidTunnelType
 		}

@@ -54,6 +54,35 @@ tunnels:
 			wantErr: false,
 		},
 		{
+			name: "valid k8s tunnel",
+			data: []byte(`
+tunnels:
+- type: k8s
+  context: gke-cluster
+  resource_namespace: default
+  resource_kind: svc
+  resource_name: web-server
+  remotePort: 8080
+  localPort: 80
+`),
+			want: Config{
+				Tunnels: []Tunnel{
+					K8sPortForwardTunnel{
+						TunnelType: TunnelType{
+							Type: "k8s",
+						},
+						Context: "gke-cluster",
+						ResourceNamespace: "default",
+						ResourceKind: "svc",
+						ResourceName: "web-server",
+						RemotePort: 8080,
+						LocalPort:  80,
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
 			name: "invalid tunnel type",
 			data: []byte(`
 tunnels:
