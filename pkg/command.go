@@ -25,6 +25,7 @@ tby: teleport behind you
 An awesome terminal program that will accelerate your way of using tsh teleport client.`,
 		Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+
 			defer func() {
 				if err := recover(); err != nil {
 					log.Fatal().Msgf("recovered from panic: %v", err)
@@ -53,7 +54,7 @@ An awesome terminal program that will accelerate your way of using tsh teleport 
 		},
 	}
 
-	cmd.AddCommand(downCmd(), listCmd())
+	cmd.AddCommand(portCmd(), hostCmd(), downCmd(), listCmd())
 
 	return cmd
 }
@@ -90,6 +91,62 @@ func downCmd() *cobra.Command {
 	}
 }
 
+func portCmd() *cobra.Command {
+
+	return &cobra.Command{
+		Use:   "port ID",
+		Short: "Get tunnel port number",
+		Long:  `Retrieve tunnel port number to use on other scripts.`,
+		Args:  cobra.MinimumNArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+
+			defer func() {
+				if err := recover(); err != nil {
+					log.Fatal().Msgf("recovered from panic: %v", err)
+				}
+			}()
+
+			id, err := strconv.Atoi(args[0])
+			if err != nil {
+				log.Fatal().Err(err).Msg("Failed to parse ID")
+			}
+
+			config := GetConfig()
+			tun := config.Tunnels[id]
+
+			fmt.Print(tun.GetLocalPort())
+		},
+	}
+}
+
+func hostCmd() *cobra.Command {
+
+	return &cobra.Command{
+		Use:   "host ID",
+		Short: "Get tunnel host and port number",
+		Long:  `Retrieve tunnel host and port number to use on other scripts.`,
+		Args:  cobra.MinimumNArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+
+			defer func() {
+				if err := recover(); err != nil {
+					log.Fatal().Msgf("recovered from panic: %v", err)
+				}
+			}()
+
+			id, err := strconv.Atoi(args[0])
+			if err != nil {
+				log.Fatal().Err(err).Msg("Failed to parse ID")
+			}
+
+			config := GetConfig()
+			tun := config.Tunnels[id]
+
+			fmt.Printf("localhost:%d", tun.GetLocalPort())
+		},
+	}
+}
+
 func listCmd() *cobra.Command {
 
 	return &cobra.Command{
@@ -98,6 +155,12 @@ func listCmd() *cobra.Command {
 		Short:   "List registered tunnels",
 		Long:    `List tunnels configured inside tby config file in a table.`,
 		Run: func(cmd *cobra.Command, args []string) {
+
+			defer func() {
+				if err := recover(); err != nil {
+					log.Fatal().Msgf("recovered from panic: %v", err)
+				}
+			}()
 
 			config := GetConfig()
 
