@@ -6,9 +6,12 @@ import (
 	"strconv"
 	"text/tabwriter"
 
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
+
+var verbose bool
 
 func CommandExecute() {
 	rootCmd().Execute()
@@ -24,6 +27,15 @@ func rootCmd() *cobra.Command {
 tby: teleport behind you
 An awesome terminal program that will accelerate your way of using tsh teleport client.`,
 		Args: cobra.MinimumNArgs(1),
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+
+			log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
+			zerolog.SetGlobalLevel(zerolog.ErrorLevel)
+			if verbose {
+				zerolog.SetGlobalLevel(zerolog.DebugLevel)
+			}
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 
 			defer func() {
@@ -31,6 +43,8 @@ An awesome terminal program that will accelerate your way of using tsh teleport 
 					log.Fatal().Msgf("recovered from panic: %v", err)
 				}
 			}()
+
+			log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
@@ -54,6 +68,7 @@ An awesome terminal program that will accelerate your way of using tsh teleport 
 		},
 	}
 
+	cmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Log debug information")
 	cmd.AddCommand(portCmd(), hostCmd(), downCmd(), listCmd())
 
 	return cmd

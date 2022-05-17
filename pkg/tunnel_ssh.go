@@ -77,7 +77,7 @@ func (t SSHTunnel) IsUp() bool {
 
 	_, err := t.runPgrep()
 	if err != nil {
-		log.Err(err).Msg("Error running pgrep or process not found")
+		log.Warn().AnErr("error", err).Msg("Error running pgrep or process not found")
 		return false
 	}
 
