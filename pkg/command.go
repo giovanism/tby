@@ -22,7 +22,7 @@ func rootCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "tby ID",
 		Short: "Connect to tunnel ID",
-		Long: `tby is the main command, used to connect to your tunnels.
+		Long: `tby is the main command.
 
 tby: teleport behind you
 An awesome terminal program that will accelerate your way of using tsh teleport client.`,
@@ -36,6 +36,27 @@ An awesome terminal program that will accelerate your way of using tsh teleport 
 				zerolog.SetGlobalLevel(zerolog.DebugLevel)
 			}
 		},
+	}
+
+	cmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Log debug information")
+	cmd.AddCommand(
+		downCmd(),
+		hostCmd(),
+		listCmd(),
+		portCmd(),
+		upCmd(),
+	)
+
+	return cmd
+}
+
+func upCmd() *cobra.Command {
+
+	return &cobra.Command{
+		Use:   "up ID",
+		Short: "Connect to tunnel ID",
+		Long:  `up command used to connect to your tunnels.`,
+		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 
 			defer func() {
@@ -43,8 +64,6 @@ An awesome terminal program that will accelerate your way of using tsh teleport 
 					log.Fatal().Msgf("recovered from panic: %v", err)
 				}
 			}()
-
-			log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
@@ -67,12 +86,8 @@ An awesome terminal program that will accelerate your way of using tsh teleport 
 			}
 		},
 	}
-
-	cmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Log debug information")
-	cmd.AddCommand(portCmd(), hostCmd(), downCmd(), listCmd())
-
-	return cmd
 }
+
 
 func downCmd() *cobra.Command {
 
