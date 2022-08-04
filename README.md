@@ -22,42 +22,42 @@ Example `tby.yml` config file:
 tunnels:
 - type: ssh
   user: root
-  nodeName: staging-database
-  remotePort: 5432
-  localPort: 5432
+  node_name: staging-database
+  remote_port: 5432
+  local_port: 5432
 - type: ssh
   user: root
-  nodeName: production-database
-  remotePort: 5432
-  localPort: 5433
+  node_name: production-database
+  remote_port: 5432
+  local_port: 5433
 - type: k8s
   context: staging-cluster
   resource_namespace: default
   resource_kind: svc
   resource_name: staging-api-server
-  remotePort: 80
-  localPort: 8080
+  remote_port: 80
+  local_port: 8080
 - type: k8s
   context: staging-cluster
   resource_namespace: default
   resource_kind: svc
   resource_name: staging-frontend
-  remotePort: 80
-  localPort: 3000
+  remote_port: 80
+  local_port: 3000
 - type: k8s
   context: production-cluster
   resource_namespace: default
   resource_kind: svc
   resource_name: production-api-server
-  remotePort: 80
-  localPort: 8081
+  remote_port: 80
+  local_port: 8081
 - type: k8s
   context: production-cluster
   resource_namespace: default
   resource_kind: svc
   resource_name: production-frontend
-  remotePort: 80
-  localPort: 3001
+  remote_port: 80
+  local_port: 3001
 ```
 
 Look for where to put `tby.yml` config file this way.
