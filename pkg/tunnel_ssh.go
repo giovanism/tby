@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
+	"gopkg.in/yaml.v3"
 )
 
 type SSHTunnel struct {
@@ -15,6 +16,43 @@ type SSHTunnel struct {
 	NodeName   string `yaml:"node_name"`
 	RemotePort int    `yaml:"remote_port"`
 	LocalPort  int    `yaml:"local_port"`
+}
+
+func (t *SSHTunnel) UnmarshalYAML(val *yaml.Node) error {
+
+	type proxyType SSHTunnel
+	err := val.Decode((*proxyType)(t))
+	if err != nil {
+		return err
+	}
+
+	type oldSSHTunnelFields struct {
+		NodeName   string `yaml:"nodeName"`
+		RemotePort int    `yaml:"remotePort"`
+		LocalPort  int    `yaml:"localPort"`
+	}
+	var oldTun oldSSHTunnelFields
+
+	err = val.Decode(&oldTun)
+	if err != nil {
+		return err
+	}
+
+	log.Debug().Msgf("%v\n", t)
+
+	if t.NodeName == "" && oldTun.NodeName != "" {
+		t.NodeName = oldTun.NodeName
+	}
+
+	if t.RemotePort == 0 && oldTun.RemotePort != 0 {
+		t.RemotePort = oldTun.RemotePort
+	}
+
+	if t.LocalPort == 0 && oldTun.LocalPort != 0 {
+		t.LocalPort = oldTun.LocalPort
+	}
+
+	return nil
 }
 
 func (t SSHTunnel) getExecArgs() []string {
