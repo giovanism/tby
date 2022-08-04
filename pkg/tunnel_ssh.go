@@ -38,8 +38,6 @@ func (t *SSHTunnel) UnmarshalYAML(val *yaml.Node) error {
 		return err
 	}
 
-	log.Debug().Msgf("%v\n", t)
-
 	if t.NodeName == "" && oldTun.NodeName != "" {
 		t.NodeName = oldTun.NodeName
 	}
