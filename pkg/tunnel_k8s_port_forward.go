@@ -15,8 +15,8 @@ type K8sPortForwardTunnel struct {
 	ResourceKind      string `yaml:"resource_kind"`
 	ResourceNamespace string `yaml:"resource_namespace"`
 	ResourceName      string `yaml:"resource_name"`
-	RemotePort        int    `yaml:"remotePort"`
-	LocalPort         int    `yaml:"localPort"`
+	RemotePort        int    `yaml:"remote_port"`
+	LocalPort         int    `yaml:"local_port"`
 }
 
 func (t K8sPortForwardTunnel) getExecArgs() []string {

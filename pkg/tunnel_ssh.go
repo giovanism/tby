@@ -12,9 +12,9 @@ import (
 type SSHTunnel struct {
 	TunnelType `yaml:",inline"`
 	User       string `yaml:"user"`
-	NodeName   string `yaml:"nodeName"`
-	RemotePort int    `yaml:"remotePort"`
-	LocalPort  int    `yaml:"localPort"`
+	NodeName   string `yaml:"node_name"`
+	RemotePort int    `yaml:"remote_port"`
+	LocalPort  int    `yaml:"local_port"`
 }
 
 func (t SSHTunnel) getExecArgs() []string {
