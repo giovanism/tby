@@ -15,6 +15,5 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Release
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        environment: main
         run: npx -p @semantic-release/changelog -p @semantic-release/git semantic-release
