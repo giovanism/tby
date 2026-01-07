@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
-	"gopkg.in/yaml.v3"
 )
 
 type K8sPortForwardTunnel struct {
@@ -20,10 +19,10 @@ type K8sPortForwardTunnel struct {
 	LocalPort         int    `yaml:"local_port"`
 }
 
-func (t *K8sPortForwardTunnel) UnmarshalYAML(val *yaml.Node) error {
+func (t *K8sPortForwardTunnel) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	type proxyType K8sPortForwardTunnel
-	err := val.Decode((*proxyType)(t))
+	err := unmarshal((*proxyType)(t))
 	if err != nil {
 		return err
 	}
@@ -34,7 +33,7 @@ func (t *K8sPortForwardTunnel) UnmarshalYAML(val *yaml.Node) error {
 	}
 	var oldTun oldK8sPortForwardTunnelFields
 
-	err = val.Decode(&oldTun)
+	err = unmarshal(&oldTun)
 	if err != nil {
 		return err
 	}

@@ -3,8 +3,8 @@ package pkg_test
 import (
 	"testing"
 
+	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/yaml.v3"
 
 	. "github.com/giovanism/tby/pkg"
 )
@@ -71,12 +71,12 @@ tunnels:
 						TunnelType: TunnelType{
 							Type: "k8s",
 						},
-						Context: "gke-cluster",
+						Context:           "gke-cluster",
 						ResourceNamespace: "default",
-						ResourceKind: "svc",
-						ResourceName: "web-server",
-						RemotePort: 8080,
-						LocalPort:  80,
+						ResourceKind:      "svc",
+						ResourceName:      "web-server",
+						RemotePort:        8080,
+						LocalPort:         80,
 					},
 				},
 			},

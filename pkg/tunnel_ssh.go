@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
-	"gopkg.in/yaml.v3"
 )
 
 type SSHTunnel struct {
@@ -18,10 +17,10 @@ type SSHTunnel struct {
 	LocalPort  int    `yaml:"local_port"`
 }
 
-func (t *SSHTunnel) UnmarshalYAML(val *yaml.Node) error {
+func (t *SSHTunnel) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	type proxyType SSHTunnel
-	err := val.Decode((*proxyType)(t))
+	err := unmarshal((*proxyType)(t))
 	if err != nil {
 		return err
 	}
@@ -33,7 +32,7 @@ func (t *SSHTunnel) UnmarshalYAML(val *yaml.Node) error {
 	}
 	var oldTun oldSSHTunnelFields
 
-	err = val.Decode(&oldTun)
+	err = unmarshal(&oldTun)
 	if err != nil {
 		return err
 	}

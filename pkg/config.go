@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/goccy/go-yaml"
 	"github.com/rs/zerolog/log"
-	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -18,47 +18,44 @@ type Config struct {
 	Tunnels []Tunnel `yaml:"tunnels"`
 }
 
-func (t *Config) UnmarshalYAML(val *yaml.Node) error {
+func (t *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type tmpTbyConfig struct {
-		Tunnels []yaml.Node `yaml:"tunnels"`
+		Tunnels []map[string]interface{} `yaml:"tunnels"`
 	}
 	var tmpConfig tmpTbyConfig
 
-	err := val.Decode(&tmpConfig)
+	err := unmarshal(&tmpConfig)
 	if err != nil {
 		return err
 	}
 
 	tunnels := make([]Tunnel, 0, len(tmpConfig.Tunnels))
-	for _, tunNode := range tmpConfig.Tunnels {
-		if tunNode.Kind != yaml.MappingNode {
+	for _, tunMap := range tmpConfig.Tunnels {
+		tunType, ok := tunMap["type"].(string)
+		if !ok {
 			return ErrInvalidConfig
 		}
-		var tmpTun TunnelType
 
-		err = tunNode.Decode(&tmpTun)
+		// Re-marshal and unmarshal to get the proper typed struct
+		tunBytes, err := yaml.Marshal(tunMap)
 		if err != nil {
 			return err
 		}
 
-		switch tmpTun.Type {
+		switch tunType {
 		case "ssh":
 			var sshTun SSHTunnel
-
-			err = tunNode.Decode(&sshTun)
+			err = yaml.Unmarshal(tunBytes, &sshTun)
 			if err != nil {
 				return err
 			}
-
 			tunnels = append(tunnels, sshTun)
 		case "k8s":
 			var k8sTun K8sPortForwardTunnel
-
-			err = tunNode.Decode(&k8sTun)
+			err = yaml.Unmarshal(tunBytes, &k8sTun)
 			if err != nil {
 				return err
 			}
-
 			tunnels = append(tunnels, k8sTun)
 		default:
 			return ErrInvalidTunnelType
